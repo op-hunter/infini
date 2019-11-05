@@ -1,5 +1,5 @@
 #!/bin/bash
-#需要提前将数据导入到 '/tmp'下面
+#需要提前将数据导入到 '$WORK_DIR/raw_data'下面
 #create database user and import data
 IS_RUN=$(ps ax | grep "megawise_server" | wc -l)
 while [ $IS_RUN -le 1 ];do
@@ -25,13 +25,7 @@ while [ $IS_RUN -le 0 ];do
 done
 
 sleep 3
-/megawise/bin/psql postgres <<EOF
-CREATE USER zilliz WITH PASSWORD 'zilliz';
-grant all privileges on database postgres to zilliz;
-drop extension if exists zdb_fdw;
-create extension zdb_fdw;
-EOF
-/megawise/bin/psql postgres -U zilliz <<EOF
+/megawise/bin/psql -h 127.0.0.1 postgres -U zilliz <<EOF
 drop table if exists nyc_taxi;
 create table nyc_taxi(
     vendor_id text,
@@ -47,7 +41,7 @@ create table nyc_taxi(
     tip_amount float,
     total_amount float
     );
-copy nyc_taxi from '/tmp/nyc_taxi_data.csv'
+copy nyc_taxi from '/megawise/raw_data/nyc_taxi_data.csv'
  WITH DELIMITER ',' csv header;
 select count(*) from nyc_taxi;
 EOF
